@@ -55,6 +55,9 @@ def nickname(ini_token):
     except requests.exceptions.RequestException as e:
         print(f"Request Exception: {e}")
         return False
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
+        return False
 
 
 def dock_balance(ini_token):
@@ -86,6 +89,8 @@ def dock_balance(ini_token):
         return lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e}")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def claim_mining(ini_token):
@@ -98,6 +103,8 @@ def claim_mining(ini_token):
     except requests.exceptions.HTTPError as e:
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT + "You can't press the button yet")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def animate_energy_recharge(duration):
@@ -136,6 +143,8 @@ def auto_upgrade_yield_percentage(ini_token):
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
                   "Not enough money to upgrade yield_percentage")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def auto_upgrade_lunar_loot_speed(ini_token):
@@ -149,6 +158,8 @@ def auto_upgrade_lunar_loot_speed(ini_token):
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
                   "Not enough money to upgrade loot_speed")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def auto_upgrade_dock_size(ini_token):
@@ -162,6 +173,8 @@ def auto_upgrade_dock_size(ini_token):
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
                   "Not enough money to upgrade dock_size")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def read_tokens():
@@ -195,7 +208,7 @@ def main():
             if nickname(token) == False:
                 continue
             print(
-                f"{Fore.BLUE + Style.BRIGHT}\n========[{Fore.WHITE + Style.BRIGHT} Akun {index + 1}  {Fore.BLUE + Style.BRIGHT}]========")
+                f"{Fore.BLUE + Style.BRIGHT}\n========[{Fore.WHITE + Style.BRIGHT} Akun {index + 1} |  {nickname(token)} {Fore.BLUE + Style.BRIGHT}]========")
             lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl = dock_balance(
                 token)
 
