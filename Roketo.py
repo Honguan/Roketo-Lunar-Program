@@ -1,7 +1,7 @@
 import requests
 import datetime
 import time
-from colorama import init, Fore, Style
+from colorama import init, Fore, Style, Back
 import os
 init(autoreset=True)
 
@@ -96,40 +96,29 @@ def dock_balance(ini_token):
 def claim_mining(ini_token):
     url = 'https://lunar-api.roke.to/dock/idle-mining/'
     response = requests.post(url, headers=get_headers(ini_token))
-    data = response.json()
     try:
         response.raise_for_status()
-        print(Fore.YELLOW + Style.BRIGHT + f"claim_mining: {data}")
+        if response.status_code == 200:
+            print(Fore.YELLOW + Style.BRIGHT + f"claim mining success")
     except requests.exceptions.HTTPError as e:
         if response.status_code == 400:
-            print(Fore.BLUE + Style.BRIGHT + "You can't press the button yet")
+            print(Fore.BLUE + Style.BRIGHT + "You can't press claim_mining")
     except (KeyError, ValueError) as e:
         print(f"Invalid JSON response: {e}")
 
 
-def animate_energy_recharge(duration):
-    frames = ["|", "/", "-", "\\"]
-    end_time = time.time() + duration
-    while time.time() < end_time:
-        remaining_time = int(end_time - time.time())
-        for frame in frames:
-            print(
-                f"\r recharge energy {frame} - remaining time {remaining_time} second", end="", flush=True)
-            time.sleep(0.25)
-    print("\r Break time.", flush=True)
-
-
-# def claim_last_yield(ini_token):  //no longer available
-#     url = 'https://lunar-api.roke.to/dock/idle-yield/'
-#     response = requests.post(url, headers=get_headers(ini_token))
-#     data = response.json()
-#     try:
-#         response.raise_for_status()
-#         print(f"detail: {data['detail']}")
-#     except requests.exceptions.HTTPError as e:
-#         print(f"HTTP Error: {e}")
-#     except Exception as e:
-#         print(f"An error occurred: {e}")
+def claim_last_yield(ini_token):
+    url = 'https://lunar-api.roke.to/dock/yield-claim/'
+    response = requests.post(url, headers=get_headers(ini_token))
+    try:
+        response.raise_for_status()
+        if response.status_code == 200:
+            print(Fore.YELLOW + Style.BRIGHT + f"claim last yield success")
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 400:
+            print(Fore.BLUE + Style.BRIGHT + "You can't press last_yield")
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
 
 
 def auto_upgrade_yield_percentage(ini_token):
@@ -138,7 +127,11 @@ def auto_upgrade_yield_percentage(ini_token):
     data = response.json()
     try:
         response.raise_for_status()
-        print(Fore.GREEN + Style.BRIGHT + f"Yield_Upgrade_Level: {data}")
+        if response.status_code == 200:
+            # Define the variable
+            lunar_loot_speed_lvl = data['lunar_loot_speed_lvl']
+            print(Fore.GREEN + Style.BRIGHT +
+                  f"Yield_Upgrade_Level: {lunar_loot_speed_lvl}")  # Use the variable
     except requests.exceptions.HTTPError as e:
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
@@ -153,7 +146,10 @@ def auto_upgrade_lunar_loot_speed(ini_token):
     data = response.json()
     try:
         response.raise_for_status()
-        print(Fore.GREEN + Style.BRIGHT + f"Loot_Speed_Upgrade_Level: {data}")
+        if response.status_code == 200:
+            lunar_loot_speed_lvl = data['lunar_loot_speed_lvl']
+            print(Fore.GREEN + Style.BRIGHT +
+                  f"Lunar_Loot_Speed_Upgrade_Level: {lunar_loot_speed_lvl}")
     except requests.exceptions.HTTPError as e:
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
@@ -168,7 +164,10 @@ def auto_upgrade_dock_size(ini_token):
     data = response.json()
     try:
         response.raise_for_status()
-        print(Fore.GREEN + Style.BRIGHT + f"Dock_Size_Upgrade_Level: {data}")
+        if response.status_code == 200:
+            dock_size_lvl = data['dock_size_lvl']
+            print(Fore.GREEN + Style.BRIGHT +
+                  f"Dock_Size_Upgrade_Level: {dock_size_lvl}")
     except requests.exceptions.HTTPError as e:
         if response.status_code == 400:
             print(Fore.BLUE + Style.BRIGHT +
@@ -180,6 +179,18 @@ def auto_upgrade_dock_size(ini_token):
 def read_tokens():
     with open('initdata.txt', 'r') as file:
         return [line.strip() for line in file if line.strip()]
+
+
+def animate_energy_recharge(duration):
+    frames = ["|", "/", "-", "\\"]
+    end_time = time.time() + duration
+    while time.time() < end_time:
+        remaining_time = int(end_time - time.time())
+        for frame in frames:
+            print(
+                f"\r recharge energy {frame} - remaining time {remaining_time} second", end="", flush=True)
+            time.sleep(0.25)
+    print("\r Break time.", flush=True)
 
 
 def main():
@@ -206,6 +217,8 @@ def main():
         tokens = read_tokens()
         for index, token in enumerate(tokens):
             if nickname(token) == False:
+                print(
+                    f"{Fore.RED + Style.BRIGHT}Invalid Token, Please Check Your Token")
                 continue
             print(
                 f"{Fore.BLUE + Style.BRIGHT}\n========[{Fore.WHITE + Style.BRIGHT} Akun {index + 1} |  {nickname(token)} {Fore.BLUE + Style.BRIGHT}]========")
@@ -213,6 +226,7 @@ def main():
                 token)
 
             claim_mining(token)
+            claim_last_yield(token)
 
             if user_lunar_loot_speed_upgrades == 'y' and lunar_loot_speed_lvl < max_lunar_loot_speed:
                 auto_upgrade_lunar_loot_speed(token)
