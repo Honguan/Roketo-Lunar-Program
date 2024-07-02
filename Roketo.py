@@ -1,12 +1,12 @@
 import requests
 import datetime
 import time
-from colorama import init, Fore, Style, Back
+from colorama import init, Fore, Style
 import os
 init(autoreset=True)
 
 
-def print_welcome_message():
+def print_welcome_message():  # 印出歡迎訊息
     print(r"""
 █▀▀ █░█ ▄▀█ █░░ █ █▄▄ █ █▀▀
 █▄█ █▀█ █▀█ █▄▄ █ █▄█ █ ██▄
@@ -20,7 +20,7 @@ def print_welcome_message():
           "There is no sale, all sales are scams\n\n")
 
 
-def get_headers(token):
+def get_headers(token):  # 取得標頭
     return {
         'accept': 'application/json, text/plain, */*',
         'accept-language': 'en-US,en;q=0.9',
@@ -38,11 +38,11 @@ def get_headers(token):
     }
 
 
-def clear_console():
+def clear_console():  # 清空控制台
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def nickname(ini_token):
+def nickname(ini_token):  # 取得暱稱
     url = 'https://lunar-api.roke.to/users/me/'
     try:
         response = requests.get(url, headers=get_headers(ini_token))
@@ -60,7 +60,7 @@ def nickname(ini_token):
         return False
 
 
-def dock_balance(ini_token):
+def dock_balance(ini_token):  # 取得礦石資訊
     url = 'https://lunar-api.roke.to/dock/'
     response = requests.get(url, headers=get_headers(ini_token))
     data = response.json()
@@ -72,28 +72,26 @@ def dock_balance(ini_token):
         dock_size_lvl = data['dock_size_lvl']
         yield_percentage_lvl = data['yield_percentage_lvl']
 
-        # Convert to datetime objects
         last_claimed_datetime = datetime.datetime.fromtimestamp(
             last_claimed_time)
         last_yield_datetime = datetime.datetime.fromtimestamp(last_yield_time)
 
-        # Convert to strings without microseconds
         last_claimed_str = last_claimed_datetime.strftime('%Y-%m-%d %H:%M:%S')
         last_yield_str = last_yield_datetime.strftime('%Y-%m-%d %H:%M:%S')
         balance = round(data['balance'] / 100000000, 2)
-        print(Fore.YELLOW + Style.BRIGHT + f"Loot Balance: {balance}", end=" ")
+        print(Fore.YELLOW + Style.BRIGHT + f"Loot Balance: {balance}")
         print(Fore.YELLOW + Style.BRIGHT +
               f"Last Claimed Time: {last_claimed_str}")
         print(Fore.YELLOW + Style.BRIGHT +
               f"Last Yield Time: {last_yield_str}")
-        return lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl
+        return last_claimed_time, lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl
     except requests.exceptions.HTTPError as e:
         print(f"HTTP Error: {e}")
     except (KeyError, ValueError) as e:
         print(f"Invalid JSON response: {e}")
 
 
-def claim_mining(ini_token):
+def claim_mining(ini_token):  # 領取礦石
     url = 'https://lunar-api.roke.to/dock/idle-mining/'
     response = requests.post(url, headers=get_headers(ini_token))
     try:
@@ -107,7 +105,7 @@ def claim_mining(ini_token):
         print(f"Invalid JSON response: {e}")
 
 
-def claim_last_yield(ini_token):
+def claim_last_yield(ini_token):  # 領取存款礦石
     url = 'https://lunar-api.roke.to/dock/yield-claim/'
     response = requests.post(url, headers=get_headers(ini_token))
     try:
@@ -121,7 +119,7 @@ def claim_last_yield(ini_token):
         print(f"Invalid JSON response: {e}")
 
 
-def auto_upgrade_yield_percentage(ini_token):
+def auto_upgrade_yield_percentage(ini_token):  # 自動升級礦石產量
     url = 'https://lunar-api.roke.to/dock/upgrades/yield_percentage/'
     response = requests.post(url, headers=get_headers(ini_token))
     data = response.json()
@@ -140,7 +138,7 @@ def auto_upgrade_yield_percentage(ini_token):
         print(f"Invalid JSON response: {e}")
 
 
-def auto_upgrade_lunar_loot_speed(ini_token):
+def auto_upgrade_lunar_loot_speed(ini_token):  # 自動升級礦石速度
     url = 'https://lunar-api.roke.to/dock/upgrades/lunar_loot_speed/'
     response = requests.post(url, headers=get_headers(ini_token))
     data = response.json()
@@ -158,7 +156,7 @@ def auto_upgrade_lunar_loot_speed(ini_token):
         print(f"Invalid JSON response: {e}")
 
 
-def auto_upgrade_dock_size(ini_token):
+def auto_upgrade_dock_size(ini_token):  # 自動升級倉庫大小
     url = 'https://lunar-api.roke.to/dock/upgrades/dock_size/'
     response = requests.post(url, headers=get_headers(ini_token))
     data = response.json()
@@ -176,12 +174,12 @@ def auto_upgrade_dock_size(ini_token):
         print(f"Invalid JSON response: {e}")
 
 
-def read_tokens():
+def read_tokens():  # 讀取密鑰
     with open('initdata.txt', 'r') as file:
         return [line.strip() for line in file if line.strip()]
 
 
-def animate_energy_recharge(duration):
+def animate_energy_recharge(duration):  # 休息動畫
     frames = ["|", "/", "-", "\\"]
     end_time = time.time() + duration
     while time.time() < end_time:
@@ -215,6 +213,7 @@ def main():
     while True:
         print_welcome_message()
         tokens = read_tokens()
+        # last_claimed_time = 0
         for index, token in enumerate(tokens):
             if nickname(token) == False:
                 print(
@@ -222,11 +221,14 @@ def main():
                 continue
             print(
                 f"{Fore.BLUE + Style.BRIGHT}\n========[{Fore.WHITE + Style.BRIGHT} Akun {index + 1} |  {nickname(token)} {Fore.BLUE + Style.BRIGHT}]========")
-            lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl = dock_balance(
+            current_last_claimed_time, lunar_loot_speed_lvl, dock_size_lvl, yield_percentage_lvl = dock_balance(
                 token)
 
             claim_mining(token)
             claim_last_yield(token)
+            # current_last_claimed_time = int(datetime.datetime.fromtimestamp(
+            #     current_last_claimed_time).timestamp()) + 7500
+            # print(current_last_claimed_time)
 
             if user_lunar_loot_speed_upgrades == 'y' and lunar_loot_speed_lvl < max_lunar_loot_speed:
                 auto_upgrade_lunar_loot_speed(token)
@@ -237,7 +239,7 @@ def main():
 
             print(
                 f"{Fore.BLUE + Style.BRIGHT}===========================================")
-        animate_energy_recharge(300)
+        animate_energy_recharge(6000)
 
 
 if __name__ == "__main__":
