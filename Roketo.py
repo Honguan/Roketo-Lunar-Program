@@ -1,3 +1,4 @@
+import json
 import requests
 import datetime
 import time
@@ -38,8 +39,44 @@ def get_headers(token):  # 取得標頭
     }
 
 
+def get_token_headers():  # 取得token標頭
+    return {
+        'accept': 'application/json, text/plain, */*',
+        'accept-language': 'en-US,en;q=0.9',
+        'origin': 'https://miniapp.roke.to',
+        'priority': 'u=1, i',
+        'referer': 'https://miniapp.roke.to/',
+        'sec-ch-ua': '"Microsoft Edge";v="125", "Chromium";v="125", "Not.A/Brand";v="24", "Microsoft Edge WebView2";v="125"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': 'Windows',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-site',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
+    }
+
+
 def clear_console():  # 清空控制台
     os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def get_token(query_id):  # 取得token
+    url = 'https://lunar-api.roke.to/token/'
+    data = json.dumps({"init_data": query_id})
+    try:
+        response = requests.get(url, headers=get_token_headers(), data=data)
+        data = response.json()
+        if response.status_code == 200:
+            access_token = data['access_token']
+            return access_token
+        else:
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"Request Exception: {e}")
+        return False
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
+        return False
 
 
 def nickname(ini_token):  # 取得暱稱
@@ -179,6 +216,17 @@ def read_tokens():  # 讀取密鑰
         return [line.strip() for line in file if line.strip()]
 
 
+def read_query_ids():  # 讀取query_id
+    with open('query_id.txt', 'r') as file:
+        return [line.strip() for line in file if line.strip()]
+
+
+def write_tokens(tokens):  # 寫入密鑰
+    with open('initdata.txt', 'w') as file:
+        for token in tokens:
+            file.write(f"{token}\n")
+
+
 def animate_energy_recharge(duration):  # 休息動畫
     frames = ["|", "/", "-", "\\"]
     end_time = time.time() + duration
@@ -218,6 +266,13 @@ def main():
             if nickname(token) == False:
                 print(
                     f"{Fore.RED + Style.BRIGHT}Invalid Token, Please Check Your Token")
+                query_ids = read_query_ids()
+                tokens = []
+                for query_id in query_ids:
+                    token = get_token(query_id)
+                    if token:
+                        tokens.append(token)
+                write_tokens(tokens)
                 continue
             print(
                 f"{Fore.BLUE + Style.BRIGHT}\n========[{Fore.WHITE + Style.BRIGHT} Akun {index + 1} |  {nickname(token)} {Fore.BLUE + Style.BRIGHT}]========")
@@ -239,7 +294,7 @@ def main():
 
             print(
                 f"{Fore.BLUE + Style.BRIGHT}===========================================")
-        animate_energy_recharge(6000)
+        animate_energy_recharge(1000)
 
 
 if __name__ == "__main__":
