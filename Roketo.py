@@ -128,6 +128,27 @@ def dock_balance(ini_token):  # 取得礦石資訊
         print(f"Invalid JSON response: {e}")
 
 
+def claim_ad(ini_token):  # 領取廣告礦石
+    url = 'https://lunar-api.roke.to/ad-logs/'
+    response = requests.post(url, headers=get_headers(ini_token))
+    ad_logs_count, ad_logs_count_limit = 0, 0
+    try:
+        response.raise_for_status()
+        data = response.json()
+        ad_logs_count = data['ad_logs_count']
+        ad_logs_count_limit = data['ad_logs_count_limit']
+        if response.status_code == 200:
+            print(Fore.YELLOW + Style.BRIGHT + f"claim ad success")
+            return ad_logs_count, ad_logs_count_limit
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 400:
+            print(Fore.BLUE + Style.BRIGHT + "You can't claim ad")
+            return ad_logs_count, ad_logs_count_limit
+    except (KeyError, ValueError) as e:
+        print(f"Invalid JSON response: {e}")
+        return ad_logs_count, ad_logs_count_limit
+
+
 def claim_mining(ini_token):  # 領取礦石
     url = 'https://lunar-api.roke.to/dock/idle-mining/'
     response = requests.post(url, headers=get_headers(ini_token))
@@ -284,6 +305,14 @@ def main():
             # current_last_claimed_time = int(datetime.datetime.fromtimestamp(
             #     current_last_claimed_time).timestamp()) + 7500
             # print(current_last_claimed_time)
+
+            ad_logs_count, ad_logs_count_limit = claim_ad(token)
+
+            while ad_logs_count < ad_logs_count_limit:
+                ad_logs_count, ad_logs_count_limit = claim_ad(token)
+                time.sleep(1)
+                if ad_logs_count == ad_logs_count_limit:
+                    break
 
             if user_lunar_loot_speed_upgrades == 'y' and lunar_loot_speed_lvl < max_lunar_loot_speed:
                 auto_upgrade_lunar_loot_speed(token)
